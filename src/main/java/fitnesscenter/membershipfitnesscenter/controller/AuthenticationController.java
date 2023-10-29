@@ -1,7 +1,10 @@
 package fitnesscenter.membershipfitnesscenter.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fitnesscenter.membershipfitnesscenter.dto.DtoLoginRequest;
+import fitnesscenter.membershipfitnesscenter.dto.DtoLoginResponse;
 import fitnesscenter.membershipfitnesscenter.dto.DtoRegisterRequest;
+import fitnesscenter.membershipfitnesscenter.dto.DtoVerificationRequest;
 import fitnesscenter.membershipfitnesscenter.enumeration.ParticipantStatusEnum;
 import fitnesscenter.membershipfitnesscenter.model.AuthToken;
 import fitnesscenter.membershipfitnesscenter.model.Participant;
@@ -39,9 +42,9 @@ public class AuthenticationController {
     public ResponseEntity<String> register(@RequestBody DtoRegisterRequest dtoRegisterRequest) {
         try {
             String subject = "Konfirmasi Pendaftaran";
-            String text = "Terima kasih atas pendaftaran Anda di pusat kebugaran kami. Silakan klik link konfirmasi berikut untuk mengaktifkan akun Anda: [LINK KONFIRMASI]";
-            emailService.sendEmail(dtoRegisterRequest.getEmail(), subject, text);
-            registrationService.register(dtoRegisterRequest);
+            String text = "Terima kasih atas pendaftaran Anda di pusat kebugaran kami. Berikut Nomor OTP untuk megaktifkan akun Anda:";
+            String verificationCode = emailService.sendEmail(dtoRegisterRequest.getEmail(), subject, text);
+            registrationService.register(dtoRegisterRequest, verificationCode);
         } catch (MessagingException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FAILED);
         }
@@ -64,13 +67,14 @@ public class AuthenticationController {
         }
         return ResponseEntity.ok("Status kepesertaan: " + ParticipantStatusEnum.TIDAK_TERDAFTAR.toString());
     }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody DtoLoginRequest loginRequest) {
         try {
-            AuthToken authToken = authenticationService.login(loginRequest.getEmail(), loginRequest.getPassword());
-            return ResponseEntity.ok(authToken);
+            DtoLoginResponse response = authenticationService.login(loginRequest.getEmail(), loginRequest.getPassword());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Authentication failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Autentikasi Gagal: " + e.getMessage());
         }
     }
 
@@ -78,6 +82,15 @@ public class AuthenticationController {
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authToken) {
         authenticationService.logout(authToken);
         return ResponseEntity.ok("Logged out successfully.");
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<String> login(@RequestHeader("Authorization") String authToken, @RequestBody DtoVerificationRequest dtoVerificationRequest) {
+        boolean validVerificationCode = registrationService.validateOtp(authToken, dtoVerificationRequest);
+        if (validVerificationCode) {
+            return ResponseEntity.ok("Akun Anda Berhasil Divalidasi. Status kepesertaan: " + ParticipantStatusEnum.TERDAFTAR.toString());
+        }
+        return ResponseEntity.ok("Kode OTP yang Anda masukkan tidak sesuai.");
     }
 
     @PostMapping("/refresh")

@@ -1,5 +1,6 @@
 package fitnesscenter.membershipfitnesscenter.service;
 
+import fitnesscenter.membershipfitnesscenter.dto.DtoLoginResponse;
 import fitnesscenter.membershipfitnesscenter.model.AuthToken;
 import fitnesscenter.membershipfitnesscenter.model.Participant;
 import fitnesscenter.membershipfitnesscenter.repository.IAuthTokenRepository;
@@ -21,19 +22,24 @@ public class AuthenticationService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public AuthToken login(String email, String password) {
+    public DtoLoginResponse login(String email, String password) {
         Optional<Participant> participantOptional = participantRepository.findByEmail(email);
 
+        DtoLoginResponse dtoLoginResponse = new DtoLoginResponse();
         if (participantOptional.isPresent()) {
             Participant participant = participantOptional.get();
             if (passwordEncoder.matches(password, participant.getPassword())) {
                 AuthToken authToken = generateAuthToken(participant);
                 authTokenRepository.save(authToken);
-                return authToken;
+                dtoLoginResponse.setToken(authToken.getToken());
+                dtoLoginResponse.setMessage("Berhasil Login");
+                return dtoLoginResponse;
             }
+            dtoLoginResponse.setMessage("Email atau password salah.");
         }
+        dtoLoginResponse.setMessage("Email atau password salah.");
 
-        return null;
+        return dtoLoginResponse;
     }
 
     public void logout(String token) {

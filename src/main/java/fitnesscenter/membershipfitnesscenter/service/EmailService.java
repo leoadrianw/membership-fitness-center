@@ -7,6 +7,7 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
+import java.util.Random;
 
 @Service
 public class EmailService {
@@ -17,7 +18,7 @@ public class EmailService {
     @Value("${spring.mail.password}")
     private String emailPassword;
 
-    public void sendEmail(String to, String subject, String text) throws MessagingException {
+    public String sendEmail(String to, String subject, String text) throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -34,9 +35,28 @@ public class EmailService {
         message.setFrom(new InternetAddress(emailUsername));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         message.setSubject(subject);
-        message.setText(text);
+        String otp = generateVerificationCode();
+        message.setText(text.concat(otp));
 
         Transport.send(message);
+
+        return otp;
+    }
+
+    private String generateVerificationCode() {
+        int codeLength = 6;
+        String allowedChars = "0123456789";
+
+        Random random = new Random();
+        StringBuilder verificationCode = new StringBuilder(codeLength);
+
+        for (int i = 0; i < codeLength; i++) {
+            int randomIndex = random.nextInt(allowedChars.length());
+            char randomChar = allowedChars.charAt(randomIndex);
+            verificationCode.append(randomChar);
+        }
+
+        return verificationCode.toString();
     }
 
 }

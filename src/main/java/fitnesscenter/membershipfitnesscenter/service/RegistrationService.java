@@ -1,7 +1,10 @@
 package fitnesscenter.membershipfitnesscenter.service;
 
 import fitnesscenter.membershipfitnesscenter.dto.DtoRegisterRequest;
+import fitnesscenter.membershipfitnesscenter.dto.DtoVerificationRequest;
+import fitnesscenter.membershipfitnesscenter.model.AuthToken;
 import fitnesscenter.membershipfitnesscenter.model.Participant;
+import fitnesscenter.membershipfitnesscenter.repository.IAuthTokenRepository;
 import fitnesscenter.membershipfitnesscenter.repository.IParticipantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,17 +14,21 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
+import javax.mail.Part;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
 public class RegistrationService {
     @Autowired
+    private IAuthTokenRepository authTokenRepository;
+    @Autowired
     private IParticipantRepository participantRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public void register(DtoRegisterRequest request) throws MessagingException {
+    public String register(DtoRegisterRequest request, String verificationCode) throws MessagingException {
 
         if (participantRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email sudah digunakan.");
@@ -33,8 +40,6 @@ public class RegistrationService {
         participant.setPassword(passwordEncoder.encode(request.getPassword()));
         participant.setPhoneNumber(request.getPhoneNumber());
         participant.setVerified(false);
-
-        String verificationCode = generateVerificationCode();
         participant.setVerificationCode(verificationCode);
 
         String creditCardInfo = encryptCreditCardInfo(request.getCreditCard().getCardNo() +
@@ -45,22 +50,21 @@ public class RegistrationService {
         participant.setCreditCardInfo(creditCardInfo);
 
         participantRepository.save(participant);
+
+        return verificationCode;
     }
 
-    private String generateVerificationCode() {
-        int codeLength = 6;
-        String allowedChars = "0123456789";
-
-        Random random = new Random();
-        StringBuilder verificationCode = new StringBuilder(codeLength);
-
-        for (int i = 0; i < codeLength; i++) {
-            int randomIndex = random.nextInt(allowedChars.length());
-            char randomChar = allowedChars.charAt(randomIndex);
-            verificationCode.append(randomChar);
+    public boolean validateOtp(String token, DtoVerificationRequest verificationRequest) {
+        AuthToken authToken = authTokenRepository.findByToken(token);
+        if (authToken != null) {
+            Participant participant = authToken.getParticipant();
+            if (verificationRequest.getOtp().equals(participant.getVerificationCode())) {
+                participant.setVerified(true);
+                participantRepository.save(participant);
+                return true;
+            }
         }
-
-        return verificationCode.toString();
+        return false;
     }
 
     private String encryptCreditCardInfo(String creditCardInfo) {

@@ -25,6 +25,9 @@ public class AuthToken {
     private Participant participant;
 
     public AuthToken(String token, LocalDateTime expirationDateTime, Participant participant) {
+        this.token = token;
+        this.expirationDateTime = expirationDateTime;
+        this.participant = participant;
     }
 
     public AuthToken() {
