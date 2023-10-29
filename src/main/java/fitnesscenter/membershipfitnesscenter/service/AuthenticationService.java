@@ -21,9 +21,6 @@ public class AuthenticationService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private EmailService emailService;
-
     public AuthToken login(String email, String password) {
         Optional<Participant> participantOptional = participantRepository.findByEmail(email);
 

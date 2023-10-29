@@ -7,10 +7,10 @@ import fitnesscenter.membershipfitnesscenter.model.Subscription;
 import fitnesscenter.membershipfitnesscenter.repository.IParticipantRepository;
 import fitnesscenter.membershipfitnesscenter.repository.IServiceMenuRepository;
 import fitnesscenter.membershipfitnesscenter.repository.ISubscriptionRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;

@@ -10,10 +10,11 @@ import java.util.Properties;
 
 @Service
 public class EmailService {
-    @Value("${email.username}")
+
+    @Value("${spring.mail.username}")
     private String emailUsername;
 
-    @Value("${email.password}")
+    @Value("${spring.mail.password}")
     private String emailPassword;
 
     public void sendEmail(String to, String subject, String text) throws MessagingException {

@@ -1,10 +1,10 @@
 package fitnesscenter.membershipfitnesscenter.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -28,11 +28,11 @@ public class Participant {
 
     @JsonProperty("phone_number")
     @Column(name="phone_number")
-    private String phoneNumber;;
+    private String phoneNumber;
 
     @JsonProperty("is_verified")
     @Column(name="is_verified")
-    private boolean isVerified; ;
+    private boolean isVerified;
 
     @JsonProperty("verification_code")
     @Column(name="verification_code")

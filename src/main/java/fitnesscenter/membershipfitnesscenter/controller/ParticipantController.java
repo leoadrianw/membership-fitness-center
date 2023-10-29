@@ -1,6 +1,5 @@
 package fitnesscenter.membershipfitnesscenter.controller;
 
-import fitnesscenter.membershipfitnesscenter.service.EmailService;
 import fitnesscenter.membershipfitnesscenter.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +15,6 @@ import javax.mail.MessagingException;
 public class ParticipantController {
     @Autowired
     private PaymentService paymentService;
-    @Autowired
-    private EmailService emailService;
 
     @PostMapping("/verify-payment")
     public ResponseEntity<String> verifyPayment(@RequestParam String email, @RequestParam String otp) {

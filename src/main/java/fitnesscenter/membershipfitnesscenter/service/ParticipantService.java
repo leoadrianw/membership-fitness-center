@@ -10,16 +10,19 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.util.Base64;
-import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ParticipantService {
     @Autowired
-    IParticipantRepository participantRepository;
+    private IParticipantRepository participantRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public Optional<Participant> findByEmail(String email) {
+        return participantRepository.findByEmail(email);
+    }
 
     public void updateFullName(Long participantId, String newFullName) {
         Optional<Participant> participantOptional = participantRepository.findById(participantId);
