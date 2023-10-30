@@ -1,7 +1,10 @@
 package fitnesscenter.membershipfitnesscenter.service;
 
+import fitnesscenter.membershipfitnesscenter.model.AuthToken;
 import fitnesscenter.membershipfitnesscenter.model.Participant;
+import fitnesscenter.membershipfitnesscenter.repository.IAuthTokenRepository;
 import fitnesscenter.membershipfitnesscenter.repository.IParticipantRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,8 @@ import java.util.Optional;
 @Service
 public class ParticipantService {
     @Autowired
+    private IAuthTokenRepository authTokenRepository;
+    @Autowired
     private IParticipantRepository participantRepository;
 
     @Autowired
@@ -24,35 +29,39 @@ public class ParticipantService {
         return participantRepository.findByEmail(email);
     }
 
-    public void updateFullName(Long participantId, String newFullName) {
-        Optional<Participant> participantOptional = participantRepository.findById(participantId);
-
-        if (participantOptional.isPresent()) {
-            Participant participant = participantOptional.get();
+    public void updateFullName(String token, String newFullName) {
+        AuthToken authToken = authTokenRepository.findByToken(token);
+        if (authToken != null) {
+            Participant participant = authToken.getParticipant();
             participant.setName(newFullName);
             participantRepository.save(participant);
+        } else {
+            throw new EntityNotFoundException("Peserta tidak ditemukan.");
         }
     }
 
-    public void updateCreditCardInfo(Long participantId, String newCreditCardInfo) {
-        Optional<Participant> participantOptional = participantRepository.findById(participantId);
+    public void updateCreditCardInfo(String token, String newCreditCardInfo) {
 
-        if (participantOptional.isPresent()) {
-            Participant participant = participantOptional.get();
+        AuthToken authToken = authTokenRepository.findByToken(token);
+        if (authToken != null) {
+            Participant participant = authToken.getParticipant();
             String encryptedCreditCardInfo = encryptCreditCardInfo(newCreditCardInfo);
             participant.setCreditCardInfo(encryptedCreditCardInfo);
             participantRepository.save(participant);
+        } else {
+            throw new EntityNotFoundException("Peserta tidak ditemukan.");
         }
     }
 
-    public void updatePassword(Long participantId, String newPassword) {
-        Optional<Participant> participantOptional = participantRepository.findById(participantId);
-
-        if (participantOptional.isPresent()) {
-            Participant participant = participantOptional.get();
+    public void updatePassword(String token, String newPassword) {
+        AuthToken authToken = authTokenRepository.findByToken(token);
+        if (authToken != null) {
+            Participant participant = authToken.getParticipant();
             String encryptedPassword = passwordEncoder.encode(newPassword);
             participant.setPassword(encryptedPassword);
             participantRepository.save(participant);
+        } else {
+            throw new EntityNotFoundException("Peserta tidak ditemukan.");
         }
     }
 
