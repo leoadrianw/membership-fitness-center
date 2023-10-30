@@ -1,7 +1,10 @@
 package fitnesscenter.membershipfitnesscenter.service;
 
+import fitnesscenter.membershipfitnesscenter.model.AuthToken;
 import fitnesscenter.membershipfitnesscenter.model.Participant;
+import fitnesscenter.membershipfitnesscenter.repository.IAuthTokenRepository;
 import fitnesscenter.membershipfitnesscenter.repository.IParticipantRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,8 @@ import java.util.Random;
 public class PaymentService {
     @Autowired
     private IParticipantRepository participantRepository;
+    @Autowired
+    private IAuthTokenRepository authTokenRepository;
     @Autowired
     private EmailService emailService;
 
@@ -41,17 +46,18 @@ public class PaymentService {
         return false;
     }
 
-    public boolean verifyBillAmount(Long participantId, BigDecimal expectedBillAmount) {
-        Optional<Participant> participantOptional = participantRepository.findById(participantId);
-
-        if (participantOptional.isPresent()) {
-            Participant participant = participantOptional.get();
+    public boolean verifyBillAmount(String token, BigDecimal expectedBillAmount) {
+        AuthToken authToken = authTokenRepository.findByToken(token);
+        if (authToken != null) {
+            Participant participant = authToken.getParticipant();
 
             if (participant.getBillAmount() != null && participant.getBillAmount().compareTo(expectedBillAmount) == 0) {
                 participant.setBillVerified(true);
                 participantRepository.save(participant);
                 return true;
             }
+        } else {
+            throw new EntityNotFoundException("Peserta tidak ditemukan.");
         }
 
         return false;
