@@ -43,6 +43,28 @@ public class EmailService {
         return otp;
     }
 
+    public void sendEmailPasswordReset(String to, String subject, String text) throws MessagingException {
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(emailUsername, emailPassword);
+            }
+        });
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(emailUsername));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+        message.setSubject(subject);
+        message.setText(text);
+
+        Transport.send(message);
+    }
+
     private String generateVerificationCode() {
         int codeLength = 6;
         String allowedChars = "0123456789";

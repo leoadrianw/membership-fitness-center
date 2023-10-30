@@ -1,10 +1,6 @@
 package fitnesscenter.membershipfitnesscenter.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fitnesscenter.membershipfitnesscenter.dto.DtoLoginRequest;
-import fitnesscenter.membershipfitnesscenter.dto.DtoLoginResponse;
-import fitnesscenter.membershipfitnesscenter.dto.DtoRegisterRequest;
-import fitnesscenter.membershipfitnesscenter.dto.DtoVerificationRequest;
+import fitnesscenter.membershipfitnesscenter.dto.*;
 import fitnesscenter.membershipfitnesscenter.enumeration.ParticipantStatusEnum;
 import fitnesscenter.membershipfitnesscenter.model.AuthToken;
 import fitnesscenter.membershipfitnesscenter.model.Participant;
@@ -104,12 +100,32 @@ public class AuthenticationController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<?> forgotPassword(@RequestBody DtoEmailRequest dtoEmailRequest) {
         try {
-            passwordResetService.requestPasswordReset(email);
-            return ResponseEntity.ok("Password reset email sent.");
+            boolean isPasswordReset = passwordResetService.requestPasswordReset(dtoEmailRequest);
+
+            if (isPasswordReset) {
+                return ResponseEntity.ok("Password reset email berhasil dikirim. Silahkan cek email Anda.");
+            }
+
+            return ResponseEntity.badRequest().body("Password reset email gagal dikirim.");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Password reset request failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Password reset request gagal dikirim: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/forgot-password-confirmation")
+    public ResponseEntity<?> forgotPasswordConfirmation(@RequestBody DtoForgotPasswordRequest dtoForgotPasswordRequest) {
+        if (!dtoForgotPasswordRequest.getNewPassword().equals(dtoForgotPasswordRequest.getConfirmNewPassword())) {
+            return ResponseEntity.badRequest().body("Password tidak sesuai.");
+        }
+
+        boolean isPasswordReset = passwordResetService.confirmPasswordReset(dtoForgotPasswordRequest);
+
+        if (isPasswordReset) {
+            return ResponseEntity.ok("Password berhasil diubah.");
+        }
+
+        return ResponseEntity.badRequest().body("Password gagal diubah, periksa kembali token yang anda masukkan");
     }
 }

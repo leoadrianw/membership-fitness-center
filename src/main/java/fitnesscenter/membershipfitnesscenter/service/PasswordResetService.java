@@ -1,8 +1,11 @@
 package fitnesscenter.membershipfitnesscenter.service;
 
+import fitnesscenter.membershipfitnesscenter.dto.DtoEmailRequest;
+import fitnesscenter.membershipfitnesscenter.dto.DtoForgotPasswordRequest;
 import fitnesscenter.membershipfitnesscenter.model.Participant;
 import fitnesscenter.membershipfitnesscenter.repository.IParticipantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
@@ -15,9 +18,11 @@ public class PasswordResetService {
     private IParticipantRepository participantRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    public void requestPasswordReset(String email) {
-        Optional<Participant> participantOptional = participantRepository.findByEmail(email);
+    public boolean requestPasswordReset(DtoEmailRequest dtoEmailRequest) {
+        Optional<Participant> participantOptional = participantRepository.findByEmail(dtoEmailRequest.getEmail());
 
         if (participantOptional.isPresent()) {
             Participant participant = participantOptional.get();
@@ -29,7 +34,23 @@ public class PasswordResetService {
             participantRepository.save(participant);
 
             sendPasswordResetEmail(participant, resetToken);
+
+            return true;
         }
+        return false;
+    }
+
+    public boolean confirmPasswordReset(DtoForgotPasswordRequest dtoForgotPasswordRequest) {
+        Optional<Participant> participantOptional = participantRepository.findByResetToken(dtoForgotPasswordRequest.getResetToken());
+
+        if (participantOptional.isPresent()) {
+            Participant participant = participantOptional.get();
+            participant.setResetToken(null);
+            participant.setPassword(passwordEncoder.encode(dtoForgotPasswordRequest.getNewPassword()));
+            participantRepository.save(participant);
+            return true;
+        }
+        return false;
     }
 
     private String generateResetToken() {
@@ -38,12 +59,10 @@ public class PasswordResetService {
 
     private void sendPasswordResetEmail(Participant participant, String resetToken) {
         String subject = "Reset Password";
-        String text = "Anda telah meminta reset password. Silakan klik link berikut untuk mereset kata sandi Anda: [LINK RESET]";
-        String resetLink = "https://fitness.com/reset-password?token=" + resetToken;
-        text = text.replace("[LINK RESET]", resetLink);
+        String text = "Anda telah meminta reset password. Berikut token untuk mereset kata sandi Anda: ".concat(resetToken);
 
         try {
-            emailService.sendEmail(participant.getEmail(), subject, text);
+            emailService.sendEmailPasswordReset(participant.getEmail(), subject, text);
         }  catch (MessagingException e) {
             throw new RuntimeException(e);
         }
