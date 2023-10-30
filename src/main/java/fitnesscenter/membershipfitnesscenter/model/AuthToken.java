@@ -20,7 +20,7 @@ public class AuthToken {
 
     private LocalDateTime expirationDateTime;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "participant_id")
     private Participant participant;
 

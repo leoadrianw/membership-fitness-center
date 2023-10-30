@@ -60,6 +60,12 @@ public class AuthenticationService {
     private AuthToken generateAuthToken(Participant participant) {
         String token = UUID.randomUUID().toString();
         LocalDateTime expirationDateTime = LocalDateTime.now().plusHours(1);
+        AuthToken authToken = authTokenRepository.findByParticipant(participant);
+        if (authToken != null) {
+            authToken.setToken(token);
+            authToken.setExpirationDateTime(expirationDateTime);
+            return authToken;
+        }
         return new AuthToken(token, expirationDateTime, participant);
     }
 
