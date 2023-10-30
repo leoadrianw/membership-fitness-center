@@ -1,12 +1,11 @@
 package fitnesscenter.membershipfitnesscenter.controller;
 
+import fitnesscenter.membershipfitnesscenter.dto.DtoAddServiceMenuRequest;
 import fitnesscenter.membershipfitnesscenter.model.ServiceMenu;
 import fitnesscenter.membershipfitnesscenter.service.ServiceMenuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,8 +17,15 @@ public class ServiceMenuController {
 
     @GetMapping("/list")
     public ResponseEntity<List<ServiceMenu>> getAllServiceMenus() {
-        List<ServiceMenu> serviceMenus = serviceMenuService.getAllServiceMenus();
-        return ResponseEntity.ok(serviceMenus);
+        List<ServiceMenu> serviceMenuList = serviceMenuService.getAllServiceMenus();
+        return ResponseEntity.ok(serviceMenuList);
+    }
+
+    // Hanya untuk inject data supaya lebih rapi
+    @PostMapping("/add")
+    public ResponseEntity<ServiceMenu> addServiceMenu(@RequestBody DtoAddServiceMenuRequest dtoAddServiceMenuRequest) {
+        ServiceMenu serviceMenu = serviceMenuService.addServiceMenu(dtoAddServiceMenuRequest);
+        return ResponseEntity.ok(serviceMenu);
     }
 
 }
