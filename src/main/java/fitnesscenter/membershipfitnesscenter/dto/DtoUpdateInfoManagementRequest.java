@@ -10,7 +10,7 @@ public class DtoUpdateInfoManagementRequest {
     @JsonProperty("new_full_name")
     private String newFullName;
     @JsonProperty("new_credit_card_info")
-    private String newCreditCardInfo;
+    private DtoCreditCard newCreditCardInfo;
     @JsonProperty("new_password")
     private String newPassword;
 }

@@ -1,5 +1,6 @@
 package fitnesscenter.membershipfitnesscenter.service;
 
+import fitnesscenter.membershipfitnesscenter.dto.DtoCreditCard;
 import fitnesscenter.membershipfitnesscenter.model.AuthToken;
 import fitnesscenter.membershipfitnesscenter.model.Participant;
 import fitnesscenter.membershipfitnesscenter.repository.IAuthTokenRepository;
@@ -40,12 +41,16 @@ public class ParticipantService {
         }
     }
 
-    public void updateCreditCardInfo(String token, String newCreditCardInfo) {
+    public void updateCreditCardInfo(String token, DtoCreditCard creditCard) {
 
         AuthToken authToken = authTokenRepository.findByToken(token);
         if (authToken != null) {
             Participant participant = authToken.getParticipant();
-            String encryptedCreditCardInfo = encryptCreditCardInfo(newCreditCardInfo);
+            String creditCardInfo = encryptCreditCardInfo(creditCard.getCardNo() +
+                    creditCard.getCvv() +
+                    creditCard.getExpiredDate() +
+                    creditCard.getOwnerName());
+            String encryptedCreditCardInfo = encryptCreditCardInfo(creditCardInfo);
             participant.setCreditCardInfo(encryptedCreditCardInfo);
             participantRepository.save(participant);
         } else {
